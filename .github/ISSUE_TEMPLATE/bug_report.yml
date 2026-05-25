@@ -1,0 +1,69 @@
+name: 🐛 Bug report
+description: Something is broken or behaving unexpectedly.
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug + what you expected instead.
+      placeholder: |
+        When I tap the username in a status card, the app crashes.
+        I expected to navigate to the user's profile.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Login as kinshasa_kid
+        2. Open the For-You feed
+        3. Tap any username
+        4. App crashes with red screen
+    validations:
+      required: true
+
+  - type: input
+    id: backend-version
+    attributes:
+      label: Backend version / commit
+      placeholder: "4f9eded (or output of `git rev-parse --short HEAD`)"
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Mobile app version
+      placeholder: "0.1.0+1 (from pubspec.yaml)"
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - iOS simulator
+        - iOS device
+        - Android emulator
+        - Android device
+        - Web (Chrome)
+        - Backend only
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      render: shell
+      placeholder: |
+        Paste any relevant docker compose logs or Flutter console output.
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I've searched existing issues for this bug.
+          required: true
+        - label: I'm using the latest `main` (or know which commit I'm on).
+          required: true

@@ -1,0 +1,52 @@
+name: ✨ Feature request
+description: Suggest a new feature or enhancement.
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: |
+        Today, fans cannot see who reacted to their status.  This means
+        they have no signal on what content lands with their followers.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: |
+        Add an /api/v1/statuses/<id>/reactions/ endpoint that returns the
+        list of users who reacted, grouped by emoji.  Surface a "who
+        reacted" sheet in the mobile UI when the author taps the reaction
+        count.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: |
+        Just showing the count (current behaviour) — but it doesn't help
+        the author understand who their audience is.
+
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: Which challenge pillar does this reinforce?
+      description: For prioritisation, see ARCHITECTURE.md > Three core pillars.
+      options:
+        - Multiplayer
+        - Real-time data
+        - Gamification
+        - Usability / polish
+        - Cross-platform thinking
+        - Other / none
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before submitting
+      options:
+        - label: I've searched existing issues for this idea.
+          required: true
