@@ -1,0 +1,23 @@
+# FanPitch — CODEOWNERS
+#
+# These owners get auto-requested for review on every PR that touches the
+# matching paths. Branch protection on `main` requires their approval.
+#
+# Order matters: later patterns override earlier ones.
+
+# Default owner — everything that doesn't match below
+*                       @Jonlandu
+
+# Deployment + infra — most sensitive, dedicated review
+/deploy/                @Jonlandu
+/docker-compose*.yml    @Jonlandu
+/Dockerfile             @Jonlandu
+/.github/               @Jonlandu
+
+# Security policies
+/SECURITY.md            @Jonlandu
+/.github/workflows/security.yml  @Jonlandu
+
+# Architecture & contributor docs — meta-process changes need a second look
+/ARCHITECTURE.md        @Jonlandu
+/CONTRIBUTING.md        @Jonlandu

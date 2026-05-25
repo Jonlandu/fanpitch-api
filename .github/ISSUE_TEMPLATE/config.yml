@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: https://github.com/Jonlandu/fanpitch-api/security/advisories/new
+    about: Please report security issues privately — never as a public issue.
+  - name: 💬 Hackathon Discord
+    url: https://discord.gg/EBYZNDbwzp
+    about: Ask the AWS World Sports Innovation Cup team for help.
