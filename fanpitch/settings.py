@@ -166,9 +166,9 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "30/min",
-        "user": "120/min",
-        "ai": "5/hour",
+        "anon": "1000/min",
+        "user": "1000/min",
+        "ai": "1000/min",
     },
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -192,6 +192,7 @@ SPECTACULAR_SETTINGS = {
 # CORS_ALLOW_CREDENTIALS because Chrome rejects the wildcard with credentials.
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS",
                            "http://localhost:3000,http://127.0.0.1:3000", list)
+
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost(:\d+)?$",
     r"^http://127\.0\.0\.1(:\d+)?$",
