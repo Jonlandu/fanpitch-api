@@ -1,8 +1,21 @@
 # FanPitch Backend
 
-Django 5 + DRF + Channels (WebSocket) + Celery, deployed locally on PostgreSQL + Redis.
+[![CI](https://github.com/Jonlandu/fanpitch-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Jonlandu/fanpitch-api/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Jonlandu/fanpitch-api/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Jonlandu/fanpitch-api/actions/workflows/codeql.yml)
+[![Security](https://github.com/Jonlandu/fanpitch-api/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Jonlandu/fanpitch-api/actions/workflows/security.yml)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Django 5.1](https://img.shields.io/badge/django-5.1-092E20.svg?logo=django&logoColor=white)](https://djangoproject.com)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196.svg)](https://www.conventionalcommits.org)
 
-See [`../RUN.md`](../RUN.md) for the 5-minute quick start and [`../docs/AWS_DEPLOY.md`](../docs/AWS_DEPLOY.md) for the AWS path.
+> **Real-time social match experience** for the AWS World Sports Innovation Cup 2026 — Challenge 3 "Fan Squad".
+
+Django 5 + DRF + Channels (WebSocket) + Celery, deployed on AWS EC2 + RDS + S3 + Bedrock.
+
+- 🏗️ **Architecture overview** → [`ARCHITECTURE.md`](ARCHITECTURE.md)
+- 🛠️ **5-minute local quick-start** → [`../RUN.md`](../RUN.md)
+- ☁️ **AWS deployment guide** → [`deploy/README.md`](deploy/README.md)
+- 🤝 **How to contribute** → [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- 🔒 **Security policy** → [`SECURITY.md`](SECURITY.md)
 
 ## App layout
 
