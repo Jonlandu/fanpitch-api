@@ -28,11 +28,28 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
+    is_me = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "date_joined", "profile"]
-        read_only_fields = ["id", "date_joined"]
+        fields = ["id", "username", "email", "date_joined", "profile",
+                  "is_me", "is_following"]
+        read_only_fields = ["id", "date_joined", "is_me", "is_following"]
+
+    def _request_user(self):
+        req = self.context.get("request")
+        return req.user if req and req.user.is_authenticated else None
+
+    def get_is_me(self, obj) -> bool:
+        me = self._request_user()
+        return bool(me and me.id == obj.id)
+
+    def get_is_following(self, obj) -> bool:
+        me = self._request_user()
+        if not me or me.id == obj.id:
+            return False
+        return Follow.objects.filter(follower=me, followee=obj).exists()
 
 
 class RegisterSerializer(serializers.ModelSerializer):

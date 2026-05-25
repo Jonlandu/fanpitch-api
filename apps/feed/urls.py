@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     MediaPostViewSet, StatusViewSet,
     following_feed, for_you_feed, impressions_batch,
-    local_upload, media_upload_url,
+    local_upload, media_upload_url, user_statuses,
 )
 
 router = DefaultRouter()
@@ -17,4 +17,5 @@ urlpatterns = [
     path("feed/for-you/", for_you_feed, name="feed-for-you"),
     path("feed/following/", following_feed, name="feed-following"),
     path("impressions/", impressions_batch, name="impressions-batch"),
+    path("users/<int:user_id>/statuses/", user_statuses, name="user-statuses"),
 ] + router.urls
