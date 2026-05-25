@@ -25,16 +25,26 @@ sudo dnf install -y docker git python3 python3-pip
 sudo systemctl enable --now docker
 sudo usermod -aG docker ec2-user
 
-# Docker Compose v2 plugin (not bundled with Amazon Linux 2023)
+# Docker Compose v2 + buildx plugins (neither bundled with Amazon Linux 2023)
 DOCKER_CONFIG=${DOCKER_CONFIG:-/usr/local/lib/docker}
+sudo mkdir -p $DOCKER_CONFIG/cli-plugins
+
 if ! sudo docker compose version >/dev/null 2>&1; then
   echo "▶ Installing Docker Compose v2 plugin ..."
-  sudo mkdir -p $DOCKER_CONFIG/cli-plugins
   sudo curl -sSL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
     -o $DOCKER_CONFIG/cli-plugins/docker-compose
   sudo chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 fi
-echo "✓ Docker $(sudo docker --version) + Compose $(sudo docker compose version --short)"
+
+# Compose v2 latest requires buildx ≥ 0.17 for `compose build`. Install it.
+if ! sudo docker buildx version >/dev/null 2>&1; then
+  echo "▶ Installing Docker buildx plugin ..."
+  BUILDX_TAG=$(curl -sL https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | head -1 | cut -d'"' -f4)
+  sudo curl -sSL "https://github.com/docker/buildx/releases/download/$BUILDX_TAG/buildx-$BUILDX_TAG.linux-amd64" \
+    -o $DOCKER_CONFIG/cli-plugins/docker-buildx
+  sudo chmod +x $DOCKER_CONFIG/cli-plugins/docker-buildx
+fi
+echo "✓ Docker $(sudo docker --version) + Compose $(sudo docker compose version --short) + buildx $(sudo docker buildx version | head -1 | cut -d' ' -f2)"
 
 if [[ ! -d "$APP_DIR" ]]; then
   echo "✗ $APP_DIR missing — did sync_local.sh run?" >&2
