@@ -1,0 +1,61 @@
+# FanPitch — production stack for AWS EC2 (Innovation Sandbox)
+# Uses managed RDS for Postgres (NOT in this compose); Redis runs in-container
+# because the sandbox does not guarantee ElastiCache access.
+#
+# Usage on the EC2:
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml exec web python manage.py migrate
+#   docker compose -f docker-compose.prod.yml exec web python manage.py demo_setup
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "80:8000"     # serve HTTP on port 80 of the EC2 public DNS
+    volumes:
+      - mediafiles:/app/mediafiles
+      - staticfiles:/app/staticfiles
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 fanpitch.asgi:application"
+
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A fanpitch worker -l info --concurrency=2
+
+  beat:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A fanpitch beat -l info
+
+volumes:
+  redisdata:
+  mediafiles:
+  staticfiles:
