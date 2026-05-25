@@ -5,13 +5,13 @@ Broadcast new polls + vote updates over Channels.
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from datetime import timedelta
 
 from apps.matches.models import MatchEvent
 
@@ -67,11 +67,6 @@ def broadcast_poll_vote(sender, instance: PollVote, created: bool, **kwargs):
     poll = instance.poll
     if not poll.match_id:
         return
-    counts = (
-        PollVote.objects.filter(poll=poll)
-        .values("option_index")
-        .order_by()
-    )
     tallied = [0] * len(poll.options)
     for row in PollVote.objects.filter(poll=poll).values_list("option_index", flat=True):
         if 0 <= row < len(tallied):

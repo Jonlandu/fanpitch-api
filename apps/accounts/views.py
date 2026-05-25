@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Follow, Profile
+from .models import Follow
 from .serializers import ProfileSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()

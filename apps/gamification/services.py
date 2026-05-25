@@ -39,7 +39,6 @@ def grant_points(user, source: str, *, source_id: int | None = None,
     evt = PointsEvent.objects.create(
         user=user, source=source, source_id=source_id, delta=delta, note=note,
     )
-    User = type(user)
     from apps.accounts.models import Profile
     Profile.objects.filter(user=user).update(points=F("points") + delta)
     return evt
@@ -57,8 +56,8 @@ def check_badges_for(user) -> list[str]:
     """Idempotent badge sweep for a user. Returns list of newly awarded codes."""
     awarded: list[str] = []
 
-    from apps.interactions.models import Prediction, Reaction
     from apps.feed.models import Status
+    from apps.interactions.models import Prediction, Reaction
 
     if Prediction.objects.filter(user=user, points_awarded=50).count() >= 5:
         if award_badge(user, "ORACLE"):
