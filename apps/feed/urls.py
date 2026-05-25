@@ -2,9 +2,14 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    MediaPostViewSet, StatusViewSet,
-    following_feed, for_you_feed, impressions_batch,
-    local_upload, media_upload_url, user_statuses,
+    MediaPostViewSet,
+    StatusViewSet,
+    following_feed,
+    for_you_feed,
+    impressions_batch,
+    local_upload,
+    media_upload_url,
+    user_statuses,
 )
 
 router = DefaultRouter()

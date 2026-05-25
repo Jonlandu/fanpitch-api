@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Match, MatchEvent, Team
+from .models import Match, Team
 from .serializers import (
     MatchDetailSerializer,
     MatchEventSerializer,

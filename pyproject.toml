@@ -1,0 +1,45 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv", "venv", "staticfiles", "mediafiles", "*/migrations/*"]
+
+[tool.ruff.lint]
+# Keep it pragmatic for a hackathon: pyflakes + pycodestyle + isort + a few
+# correctness selectors. No B (bug-bear), no UP (pyupgrade), no D (docstrings).
+select = ["E", "F", "I", "W", "B", "C4", "DJ", "SIM"]
+ignore = [
+    "E501",   # line too long — handled by formatter, sometimes intentional in DOC strings
+    "B008",   # FastAPI/DRF style — allowing Depends() / mutable defaults in signatures
+    "B905",   # zip() without strict=True — Python 3.10+; OK to enforce later
+    "DJ001",  # null=True on string fields — common in Django and intentional in Profile
+    "DJ008",  # missing __str__ on model — admin uses default, fine for hackathon
+    "SIM102", # nested if statements — readability call
+    "SIM105", # try-except-pass → contextlib.suppress — equivalent, leave existing code
+    "SIM108", # if-else → ternary — readability call
+    "E741",   # ambiguous one-letter variable in comprehensions — context is clear
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Migrations are auto-generated; we don't lint them.
+"*/migrations/*" = ["ALL"]
+# Settings imports a lot conditionally.
+"fanpitch/settings.py" = ["F401", "E402"]
+# Test files commonly violate B/SIM rules.
+"**/tests/*" = ["B011", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "fanpitch"]
+combine-as-imports = true
+
+[tool.bandit]
+exclude_dirs = [".venv", "venv", "tests", "*/migrations/*"]
+skips = ["B101", "B404", "B603", "B607"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "fanpitch.settings"
+python_files = ["test_*.py", "*_test.py", "tests.py"]
+testpaths = ["apps", "tests"]
+addopts = "-ra --strict-markers --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

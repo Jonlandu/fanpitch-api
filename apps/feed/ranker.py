@@ -24,8 +24,6 @@ periodically.
 from __future__ import annotations
 
 import math
-from datetime import timedelta
-from typing import Iterable
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone

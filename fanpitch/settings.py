@@ -3,9 +3,9 @@ Django settings for the FanPitch backend.
 
 Reads everything sensitive from env vars (loaded via python-dotenv in development).
 """
+import os
 from datetime import timedelta
 from pathlib import Path
-import os
 
 from dotenv import load_dotenv
 

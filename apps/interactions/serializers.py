@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework import serializers
 
 from apps.matches.models import Match

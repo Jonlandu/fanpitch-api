@@ -4,7 +4,9 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes,
+    api_view,
+    parser_classes,
+    permission_classes,
 )
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +15,9 @@ from rest_framework.response import Response
 from . import ranker
 from .models import Impression, MediaPost, Status as StatusModel
 from .serializers import (
-    ImpressionBatchSerializer, MediaPostSerializer, StatusSerializer,
+    ImpressionBatchSerializer,
+    MediaPostSerializer,
+    StatusSerializer,
 )
 from .services.s3_uploads import MAX_UPLOAD_SIZE, presign_put
 
