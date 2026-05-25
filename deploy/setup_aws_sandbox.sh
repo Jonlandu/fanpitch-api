@@ -89,13 +89,14 @@ aws s3api put-bucket-cors --bucket "$S3_BUCKET" --region "$REGION" --cors-config
 }'
 ok "CORS configured."
 
-log "Configuring lifecycle (uploads/ → IA after 7d, expire after 30d) ..."
+log "Configuring lifecycle (uploads/ → expire after 30d) ..."
+# STANDARD_IA transition requires min 30d, which is when we expire anyway,
+# so just expire — no point transitioning the day before deletion.
 aws s3api put-bucket-lifecycle-configuration --bucket "$S3_BUCKET" --region "$REGION" --lifecycle-configuration '{
   "Rules":[{
     "ID":"uploads-cleanup",
     "Status":"Enabled",
     "Filter":{"Prefix":"uploads/"},
-    "Transitions":[{"Days":7,"StorageClass":"STANDARD_IA"}],
     "Expiration":{"Days":30}
   }]
 }'
@@ -110,6 +111,24 @@ aws s3api put-bucket-tagging --bucket "$S3_BUCKET" --region "$REGION" \
   --tagging "TagSet=[{Key=project,Value=$PROJECT_TAG}]" >/dev/null
 
 # ─── 3. RDS PostgreSQL ───────────────────────────────────────────────
+log "Ensuring default VPC + DB subnet group exist ..."
+DEFAULT_VPC=$(aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --query "Vpcs[0].VpcId" --output text --region "$REGION" 2>/dev/null || echo "None")
+if [[ "$DEFAULT_VPC" == "None" || -z "$DEFAULT_VPC" ]]; then
+  log "No default VPC — creating one ..."
+  aws ec2 create-default-vpc --region "$REGION" >/dev/null
+  sleep 5
+fi
+DB_SUBNET_GROUP="fanpitch-db-subnets"
+if ! aws rds describe-db-subnet-groups --db-subnet-group-name "$DB_SUBNET_GROUP" --region "$REGION" >/dev/null 2>&1; then
+  SUBNETS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$(aws ec2 describe-vpcs --filters Name=isDefault,Values=true --query 'Vpcs[0].VpcId' --output text --region $REGION)" --query "Subnets[].SubnetId" --output text --region "$REGION")
+  aws rds create-db-subnet-group --db-subnet-group-name "$DB_SUBNET_GROUP" \
+    --db-subnet-group-description "FanPitch default VPC subnets" \
+    --subnet-ids $SUBNETS --tags Key=project,Value=$PROJECT_TAG --region "$REGION" >/dev/null
+  ok "DB subnet group created."
+else
+  ok "DB subnet group already exists."
+fi
+
 log "Creating RDS PostgreSQL instance: $DB_INSTANCE_ID ..."
 if aws rds describe-db-instances --db-instance-identifier "$DB_INSTANCE_ID" --region "$REGION" >/dev/null 2>&1; then
   ok "RDS instance already exists."
@@ -121,6 +140,7 @@ else
     --allocated-storage 20 \
     --master-username "$DB_USER" \
     --master-user-password "$DB_PASSWORD" \
+    --db-subnet-group-name "$DB_SUBNET_GROUP" \
     --backup-retention-period 1 \
     --publicly-accessible \
     --no-multi-az \
