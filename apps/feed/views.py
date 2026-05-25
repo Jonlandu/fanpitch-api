@@ -109,6 +109,35 @@ def local_upload(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def user_statuses(request, user_id: int):
+    """Public timeline for a given user — paginated, newest first.
+
+    Used by the clickable profile screen on mobile.
+    """
+    try:
+        limit = min(int(request.query_params.get("limit", 20)), 50)
+        offset = max(int(request.query_params.get("offset", 0)), 0)
+    except ValueError:
+        limit, offset = 20, 0
+
+    qs = (StatusModel.objects
+          .filter(author_id=user_id, expires_at__gt=timezone.now())
+          .select_related("author", "author__profile", "media", "team")
+          .order_by("-created_at"))
+    total = qs.count()
+    items = list(qs[offset:offset + limit])
+    data = StatusSerializer(items, many=True, context={"request": request}).data
+    return Response({
+        "results": data,
+        "count": total,
+        "limit": limit,
+        "offset": offset,
+        "has_more": offset + len(items) < total,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def for_you_feed(request):
     """Ranked feed — engagement × recency × personalisation, diversified."""
     try:
