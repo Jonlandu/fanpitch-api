@@ -136,7 +136,7 @@ else
   aws rds create-db-instance \
     --db-instance-identifier "$DB_INSTANCE_ID" \
     --db-instance-class db.t4g.micro \
-    --engine postgres --engine-version 16.3 \
+    --engine postgres --engine-version 16.6 \
     --allocated-storage 20 \
     --master-username "$DB_USER" \
     --master-user-password "$DB_PASSWORD" \
@@ -286,7 +286,7 @@ fi
 ok "RDS reachable from EC2."
 
 # ─── 7. Billing alarms ───────────────────────────────────────────────
-log "Setting up CloudWatch billing alarms ($30 / $40 / $45) ..."
+log "Setting up CloudWatch billing alarms (\$30 / \$40 / \$45) ..."
 SNS_TOPIC_ARN=$(aws sns create-topic --name fanpitch-billing-alerts --region us-east-1 --query TopicArn --output text 2>/dev/null || echo "")
 if [[ -n "$SNS_TOPIC_ARN" ]]; then
   for THRESHOLD in 30 40 45; do
