@@ -17,7 +17,7 @@ jobs:
     name: Trivy — scan Docker image for CVEs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,7 +51,7 @@ jobs:
     name: Trivy — scan repo filesystem (config + secrets)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
