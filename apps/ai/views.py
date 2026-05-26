@@ -29,7 +29,14 @@ def _match_summary(match_id: int | None) -> str:
 def ai_caption(request):
     match_id = request.data.get("match_id")
     summary = _match_summary(match_id) if match_id else request.data.get("summary", "")
-    return Response(generate_caption(request.user, match_summary=summary))
+    lang = request.data.get("lang", "fr")
+    user_brief = request.data.get("brief", "") or request.data.get("user_brief", "")
+    return Response(generate_caption(
+        request.user,
+        match_summary=summary,
+        lang=lang,
+        user_brief=user_brief,
+    ))
 
 
 @api_view(["POST"])

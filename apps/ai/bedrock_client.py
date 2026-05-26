@@ -6,6 +6,8 @@ Behaviour:
   works without an AWS bill.
 - If True, calls Anthropic Claude on Bedrock (Haiku by default).
 - Every call is recorded in BedrockCall for cost monitoring.
+
+Languages supported by generate_caption: French, Lingala, Swahili, English.
 """
 from __future__ import annotations
 
@@ -22,13 +24,40 @@ from .models import BedrockCall
 log = logging.getLogger("fanpitch.bedrock")
 
 
-FALLBACK_CAPTIONS = [
-    "Quand ton gardien sort comme un crabe à marée basse 🦀",
-    "Le VAR a vu ce que mes yeux refusent d'admettre 👀",
-    "On a perdu mais on a gagné en humour 😅",
-    "Cette défense joue le hors-jeu… sans la ligne",
-    "Un dribble si élégant qu'il mérite un Oscar 🏆",
-]
+# Per-language fallbacks so the demo works even without Bedrock credentials.
+FALLBACK_CAPTIONS: dict[str, list[str]] = {
+    "fr": [
+        "Quand ton gardien sort comme un crabe à marée basse 🦀",
+        "Le VAR a vu ce que mes yeux refusent d'admettre 👀",
+        "On a perdu mais on a gagné en humour 😅",
+        "Cette défense joue le hors-jeu… sans la ligne",
+        "Un dribble si élégant qu'il mérite un Oscar 🏆",
+    ],
+    "ln": [  # Lingala — Kinshasa
+        "Goal oyo, ata mama na ngai akoki kobeta yango 😂",
+        "Equipe oyo ezali ko sambela liboso ya match 🙏",
+        "Soki ngai na zali coach, na sukisa match na minute ya 30 ⚽",
+    ],
+    "sw": [  # Swahili — Afrique de l'Est
+        "Goli kama hii, hata mama yangu angepiga bora 😆",
+        "Hii timu inacheza kama wanasubiri pizza kufika 🍕",
+        "VAR imegundua kuwa tumelala wakati wa mchezo 😴",
+    ],
+    "en": [
+        "When your keeper rushes out like a confused tourist 🧳",
+        "VAR saw something my eyes refuse to admit 👀",
+        "Lost the match, won the meme 😅",
+        "That defence is playing offside… without the line",
+    ],
+}
+
+LANG_NAME: dict[str, str] = {
+    "fr": "français",
+    "ln": "lingala (la langue parlée à Kinshasa, RDC)",
+    "sw": "swahili (Afrique de l'Est)",
+    "en": "english",
+}
+
 
 FALLBACK_MEMES = [
     {"top": "WHEN YOUR DEFENDER PLAYS THE OFFSIDE TRAP",
@@ -40,6 +69,14 @@ FALLBACK_MEMES = [
 ]
 
 
+def _normalize_lang(lang: str | None) -> str:
+    """Coerce an incoming lang string to one of our supported codes."""
+    if not lang:
+        return "fr"
+    code = lang.strip().lower()[:2]
+    return code if code in FALLBACK_CAPTIONS else "fr"
+
+
 def _bedrock_client():
     return boto3.client(
         "bedrock-runtime",
@@ -49,28 +86,45 @@ def _bedrock_client():
     )
 
 
-def generate_caption(user, *, match_summary: str = "") -> dict:
-    """Return {"caption": str, "backend": "bedrock"|"fallback"}."""
+def generate_caption(
+    user, *, match_summary: str = "", lang: str = "fr", user_brief: str = ""
+) -> dict:
+    """Return {"caption": str, "backend": "bedrock"|"fallback", "lang": str}.
+
+    Args:
+        user: the requesting user (for BedrockCall accounting).
+        match_summary: structured context like "POR 2-1 COD (LIVE)".
+        lang: target language code — fr | ln | sw | en. Defaults to fr.
+        user_brief: free-form text the user typed/dictated describing the
+            vibe they want — e.g. "a fan crying because Mbappé missed".
+    """
+    lang = _normalize_lang(lang)
+
     if not settings.BEDROCK_ENABLED:
-        cap = random.choice(FALLBACK_CAPTIONS)
+        cap = random.choice(FALLBACK_CAPTIONS[lang])
         BedrockCall.objects.create(
             user=user, kind="CAPTION", model_id="fallback",
-            output={"caption": cap}, success=True,
+            output={"caption": cap, "lang": lang}, success=True,
         )
-        return {"caption": cap, "backend": "fallback"}
+        return {"caption": cap, "backend": "fallback", "lang": lang}
+
+    prompt = (
+        f"Écris UNE seule légende football drôle (max 20 mots) en {LANG_NAME[lang]}. "
+        f"Style: ton supporter dans un groupe WhatsApp, avec emojis. "
+        f"Contexte du match: {match_summary or 'un moment fou du match'}. "
+    )
+    if user_brief:
+        prompt += f"Le fan veut illustrer ce moment: {user_brief}. "
+    prompt += (
+        "Règles: pas de propos haineux, pas d'insultes, pas de personnes réelles "
+        "identifiables (politiciens, célébrités). Renvoie SEULEMENT la légende, "
+        "sans guillemets ni explication."
+    )
 
     body = {
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 80,
-        "messages": [{
-            "role": "user",
-            "content": (
-                "Écris UNE seule légende football drôle (max 18 mots), "
-                "ton joueur, ambiance fan dans un groupe d'amis. "
-                f"Contexte: {match_summary or 'un moment fou du match'}. "
-                "Pas de discrimination, pas de cliché plat."
-            ),
-        }],
+        "max_tokens": 100,
+        "messages": [{"role": "user", "content": prompt}],
     }
     try:
         resp = _bedrock_client().invoke_model(
@@ -78,22 +132,26 @@ def generate_caption(user, *, match_summary: str = "") -> dict:
             body=json.dumps(body),
         )
         data = json.loads(resp["body"].read())
-        text = data["content"][0]["text"].strip()
+        text = data["content"][0]["text"].strip().strip('"').strip()
         usage = data.get("usage", {})
         BedrockCall.objects.create(
             user=user, kind="CAPTION", model_id=settings.BEDROCK_MODEL_ID,
             input_tokens=usage.get("input_tokens", 0),
             output_tokens=usage.get("output_tokens", 0),
-            output={"caption": text}, success=True,
+            output={"caption": text, "lang": lang}, success=True,
         )
-        return {"caption": text, "backend": "bedrock"}
+        return {"caption": text, "backend": "bedrock", "lang": lang}
     except (BotoCoreError, ClientError, KeyError, json.JSONDecodeError) as exc:
         log.exception("bedrock caption failed: %s", exc)
         BedrockCall.objects.create(
             user=user, kind="CAPTION", model_id=settings.BEDROCK_MODEL_ID,
             success=False, error=str(exc)[:230],
         )
-        return {"caption": random.choice(FALLBACK_CAPTIONS), "backend": "fallback"}
+        return {
+            "caption": random.choice(FALLBACK_CAPTIONS[lang]),
+            "backend": "fallback",
+            "lang": lang,
+        }
 
 
 def generate_meme(user, *, match_summary: str = "") -> dict:
