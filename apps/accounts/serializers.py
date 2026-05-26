@@ -55,10 +55,13 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     display_name = serializers.CharField(required=False, allow_blank=True)
+    country = serializers.CharField(
+        required=False, allow_blank=True, max_length=80
+    )
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "display_name"]
+        fields = ["username", "email", "password", "display_name", "country"]
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -67,12 +70,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         display = validated_data.pop("display_name", "") or validated_data["username"]
+        country = validated_data.pop("country", "") or ""
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
         )
-        # Profile is auto-created via signal; set display name.
+        # Profile is auto-created via signal; set display name + country.
         user.profile.display_name = display
-        user.profile.save(update_fields=["display_name"])
+        if country:
+            user.profile.country = country
+        user.profile.save(update_fields=["display_name", "country"])
         return user
