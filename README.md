@@ -9,11 +9,20 @@
 
 > **Real-time social match experience** for the AWS World Sports Innovation Cup 2026 — Challenge 3 "Fan Squad".
 
-Django 5 + DRF + Channels (WebSocket) + Celery, deployed on AWS EC2 + RDS + S3 + Bedrock.
+Django 5 + DRF + Channels (WebSocket) + Celery, deployed on AWS EC2 + RDS + S3 + Bedrock (Innovation Sandbox, `eu-central-1`).
+
+**Live demo URLs**
+- API docs (Swagger): http://ec2-63-184-221-33.eu-central-1.compute.amazonaws.com/api/docs/
+- Admin: http://ec2-63-184-221-33.eu-central-1.compute.amazonaws.com/admin/ (`admin / admin12345`)
+- Mobile companion: [`fanpitch-app`](https://github.com/Jonlandu/fanpitch-app)
+
+**Demo fan accounts** (20 seeded, all share password `fanpitch2026`):
+`congo_general`, `lisbon_lion`, `paris_fan`, `messi_devoto`, `samba_king`, `atlas_lion`, `teranga_fan`, `indomitable_fan`, `la_furia`, `naija_naija` … (full list: `python manage.py seed_world_cup`)
 
 - 🏗️ **Architecture overview** → [`ARCHITECTURE.md`](ARCHITECTURE.md)
 - 🛠️ **5-minute local quick-start** → [`../RUN.md`](../RUN.md)
 - ☁️ **AWS deployment guide** → [`deploy/README.md`](deploy/README.md)
+- 🎯 **Hackathon submission package** → [`fanpitch-app/deliverables/`](https://github.com/Jonlandu/fanpitch-app/tree/main/deliverables)
 - 🤝 **How to contribute** → [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - 🔒 **Security policy** → [`SECURITY.md`](SECURITY.md)
 
@@ -38,7 +47,12 @@ fanpitch-api/
 # Migrations
 python manage.py migrate
 
-# Seed teams + demo fans + Portugal vs DR Congo match
+# Seed the 10-team World Cup-style demo (20 fan accounts + 8 matches)
+python manage.py seed_world_cup
+# Optional alternate seed: text-only fan posts
+python manage.py seed_demo_posts
+
+# Or the lighter "Portugal vs DR Congo" seed:
 python manage.py demo_setup
 
 # Run the live simulator (in another terminal, after the server is up)
